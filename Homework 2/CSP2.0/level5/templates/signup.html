@@ -5,13 +5,21 @@
     <script src="/static/game-frame.js"></script>
     <link rel="stylesheet" href="/static/game-frame-styles.css" />
   </head>
+
+    <script>
+        window.onload = function(){
+            link = document.getElementById('link')
+            const urlParams = new URLSearchParams(window.location.search);
+            const myParam = urlParams.get('next');
+            link.href = myParam;
+        }
+    </script>
  
   <body id="level5">
     <img src="/static/logos/level5.png" /><br><br>
     <!-- We're ignoring the email, but the poor user will never know! -->
     Enter email: <input id="reader-email" name="email" value="">
- 
     <br><br>
-    <a href="{{ next }}">Next >></a>
+    <a id='link'>Next >></a>
   </body>
 </html>

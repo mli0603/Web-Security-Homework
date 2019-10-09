@@ -8,9 +8,14 @@ app = Flask(__name__)
 def main(methods=['GET']):
     timer = request.args.get('timer', None)
     if timer is None:
-        return render_template('index.html')
+        html_text = render_template('index.html')
     else:
-        return render_template('timer.html', timer=timer)
+        html_text = render_template('timer.html', timer=timer)
+    
+    resp = make_response(html_text, 200)
+    resp.headers['X-XSS-Protection'] = '0'
+    resp.headers['Content-Security-Policy'] = "script-src 'self';"
+    return resp
 
 if __name__ == "__main__":
     Flask.run(app, debug=False)
