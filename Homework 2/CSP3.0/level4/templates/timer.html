@@ -5,7 +5,7 @@
     <script src="/static/game-frame.js"></script>
     <link rel="stylesheet" href="/static/game-frame-styles.css" />
  
-    <script>
+    <script nonce="2726c7f26c">
       function startTimer(seconds) {
         seconds = parseInt(seconds) || 3;
         setTimeout(function() { 
@@ -13,12 +13,21 @@
           window.history.back();
         }, seconds * 1000);
       }
+    window.onload = function(){
+        gif = document.getElementById('gif')
+        const urlParams = new URLSearchParams(window.location.search);
+        const myParam = urlParams.get('timer');
+        gif.onload = function(){
+            startTimer(myParam)
+        };
+        gif.src = "/static/loading.gif" 
+    }
     </script>
   </head>
   <body id="level4">
     <img src="/static/logos/level4.png" />
     <br>
-    <img src="/static/loading.gif" onload="startTimer('{{ timer }}');" />
+    <img src="/static/loading.gif" id="gif" />
     <br>
     <div id="message">Your timer will execute in {{ timer }} seconds.</div>
   </body>

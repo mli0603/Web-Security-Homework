@@ -44,6 +44,7 @@ def main(methods=['GET']):
         html_text = render_template_string(page_header + message + page_footer)
     resp = make_response(html_text, 200)
     resp.headers['X-XSS-Protection'] = '0'
+    resp.headers['Content-Security-Policy'] = "script-src 'self';"
 
     return resp
 

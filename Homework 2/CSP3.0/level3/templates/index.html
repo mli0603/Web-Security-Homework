@@ -6,11 +6,9 @@
     <link rel="stylesheet" href="/static/game-frame-styles.css" />
  
     <!-- Load jQuery -->
-    <script
-      src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js">
-    </script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
  
-    <script>
+    <script nonce=2726c7f26c>
       function chooseTab(num) {
         // Dynamically load the appropriate image.
         var html = "Image " + parseInt(num) + "<br>";
@@ -35,6 +33,18 @@
  
       window.onload = function() { 
         chooseTab(unescape(self.location.hash.substr(1)) || "1");
+        tab1 = document.getElementById("tab1")
+        tab1.onclick=function(){
+            chooseTab('1')
+        }
+        tab2 = document.getElementById("tab2")
+        tab2.onclick=function(){
+            chooseTab('2')
+        }
+        tab3 = document.getElementById("tab3")
+        tab3.onclick=function(){
+            chooseTab('3')
+        }
       }
  
       // Extra code so that we can communicate with the parent page
@@ -52,7 +62,7 @@
       <span>Take a tour of our cloud data center.</a>
     </div>
  
-    <div class="tab" id="tab1" onclick="chooseTab('1')">Image 1</div>
+    <div class="tab" id="tab1"">Image 1</div>
     <div class="tab" id="tab2" onclick="chooseTab('2')">Image 2</div>
     <div class="tab" id="tab3" onclick="chooseTab('3')">Image 3</div>
  
