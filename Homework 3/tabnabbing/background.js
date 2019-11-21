@@ -1,19 +1,21 @@
 var img_array = [];
 var tab_array = [];
-var curr_tab, curr_index;
+var attacked_array = [];
+var curr_index, cap_tab;
 var compare_flag = false;
+NUM_ELEMENT = 3;
 
 // 10s period
-// var myVar = setInterval(myTimer, 10000);
+var myVar = setInterval(myTimer, 5000);
 // tab change
-// chrome.tabs.onActivated.addListener(callback=onTabChange)
+chrome.tabs.onActivated.addListener(callback=onTabChange)
 
 
 function onCaptured(imageUri) {
     console.log("image captured");
     // console.log(imageUri);
 
-    if (!compare_flag || img_array[curr_index]== null){
+    if (!compare_flag || img_array[curr_index]== null || attacked_array[curr_index]){
         // only record when curr_index not set (indicating this is a new page) or no previous recording (need more time for screenshot)
         img_array[curr_index] = imageUri;
         console.log("recorded screenshot",curr_index);
@@ -27,11 +29,71 @@ function onCaptured(imageUri) {
         console.log("to compare screenshot",curr_index)
         
         // compare
-        // TODO: split the image into different regions
-        // TODO: compare only when tab changes
-        resembleControl = resemble(prev_img)
-                        .compareTo(imageUri)
-                        .onComplete(onComplete);
+        compare(prev_img, imageUri);
+    }
+}
+
+function compare(prev_img, curr_img){
+    var prev_jimp, curr_jimp; 
+    // read
+    Jimp.read(prev_img).then(image=> {
+        console.log('success read prev image');
+        prev_jimp = image;
+        Jimp.read(curr_img).then(image=> {
+            console.log('success read curr image');
+            curr_jimp = image;
+            // compare
+            crop_compare(prev_jimp, curr_jimp);
+        })
+        .catch(err => {
+            // Handle an exception.
+            console.log('cannot load curr image');
+        });
+    })
+    .catch(err => {
+        // Handle an exception.
+        console.log('cannot load previous image');
+    });
+}
+
+function crop_compare(prev_jimp, curr_jimp){
+    // add div tag
+    width = prev_jimp.getWidth();
+    height = prev_jimp.getHeight();
+    width_region = Math.round(width/NUM_ELEMENT);
+    height_region = Math.round(height/NUM_ELEMENT);
+    diff_mask = Array(NUM_ELEMENT*NUM_ELEMENT).fill(0);
+
+    console.log('compare')
+    for (r = 0; r < NUM_ELEMENT; r++) {
+        for (c=0; c < NUM_ELEMENT; c++){
+            // console.log(r,c)
+            prev_region = prev_jimp.clone().crop(r*width_region,c*height_region,(r+1)*width_region,(c+1)*height_region);
+            curr_region = curr_jimp.clone().crop(r*width_region,c*height_region,(r+1)*width_region,(c+1)*height_region);
+            
+            diff= Jimp.diff(prev_region, curr_region, 0.1);
+            // console.log(diff.percent)
+            if (diff.percent > 0.05){
+                // console.log(diff.percent);
+                diff_mask[r*NUM_ELEMENT+c] = 0.5;
+            }
+        }
+    }
+
+    // send message
+    console.log('send')
+    chrome.tabs.sendMessage(cap_tab, {mask: diff_mask});
+
+    // change icon
+    flag = diff_mask.some(function (e) {
+        return e > 0
+    })
+    if (flag){
+        alertIcon()
+        attacked_array[curr_index] = true;
+    }
+    else{
+        okIcon()
     }
 }
 
@@ -55,43 +117,25 @@ function okIcon() {
     });
 }
 
-// complete comparing
-function onComplete(data) {
-    diffImage_url = data.getImageDataUrl();
-    console.log("diff image");
-    // console.log(diffImage_url);
-    console.log(data.misMatchPercentage);
-
-    // TODO: check if there is different content
-    if (data.misMatchPercentage > 1.0){
-        // show alert
-        alertIcon()
-        // TODO: send area to be highlighted to content script
-        // console.log("send message")
-        // chrome.tabs.sendMessage(tabs[0].id, {greeting: "hello"});
-        // query for current tab id
-        // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    }
-    else{
-        okIcon()
-    }
-    
-}
-
 
 // periodic screenshot
 function myTimer() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        cap_tab = tabs[0].id;
+    });
     chrome.tabs.captureVisibleTab(callback=onCaptured);
 }
 
 // tab change
 function onTabChange(activeInfo){
-    curr_tab = activeInfo.tabId;
+    var curr_tab = activeInfo.tabId;
+    cap_tab = curr_tab;
 
     if (!tab_array.includes(curr_tab)){
         // record a unseen tab
         tab_array.push(curr_tab);
         img_array.push(null);
+        attacked_array.push(false);
         curr_index = tab_array.indexOf(curr_tab)
         compare_flag = false;
 
@@ -105,4 +149,11 @@ function onTabChange(activeInfo){
         // check if there is difference
         chrome.tabs.captureVisibleTab(callback=onCaptured);        
     }
+
+    if (attacked_array[curr_index]){
+        alertIcon()
+    }
+    else[
+        okIcon()
+    ]
 }
