@@ -4,9 +4,10 @@ var attacked_array = [];
 var curr_index, cap_tab;
 var compare_flag = false;
 NUM_ELEMENT = 3;
+PERIOD = 5000;
 
 // 10s period
-var myVar = setInterval(myTimer, 5000);
+var myVar = setInterval(myTimer, PERIOD);
 // tab change
 chrome.tabs.onActivated.addListener(callback=onTabChange)
 
@@ -89,6 +90,7 @@ function crop_compare(prev_jimp, curr_jimp){
         return e > 0
     })
     if (flag){
+        alert("Content has changed!");
         alertIcon()
         attacked_array[curr_index] = true;
     }
